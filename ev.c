@@ -507,7 +507,9 @@
 #endif
 
 #if EV_USE_INOTIFY
+#ifndef __QNX__
 # include <sys/statfs.h>
+#endif /* !__QNX__ */
 # include <sys/inotify.h>
 /* some very old inotify.h headers don't have IN_DONT_FOLLOW */
 # ifndef IN_DONT_FOLLOW
@@ -4740,14 +4742,16 @@ infy_add (EV_P_ ev_stat *w)
 
   if (w->wd >= 0)
     {
+#ifndef __QNX__
       struct statfs sfs;
-
+#endif
       /* now local changes will be tracked by inotify, but remote changes won't */
       /* unless the filesystem is known to be local, we therefore still poll */
       /* also do poll on <2.6.25, but with normal frequency */
 
       if (!fs_2625)
         w->timer.repeat = w->interval ? w->interval : DEF_STAT_INTERVAL;
+#ifndef __QNX__
       else if (!statfs (w->path, &sfs)
                && (sfs.f_type == 0x1373 /* devfs */
                    || sfs.f_type == 0x4006 /* fat */
@@ -4762,6 +4766,7 @@ infy_add (EV_P_ ev_stat *w)
                    || sfs.f_type == 0x01021994 /* tmpfs */
                    || sfs.f_type == 0x58465342 /* xfs */))
         w->timer.repeat = 0.; /* filesystem is local, kernel new enough */
+#endif /* !__QNX__ */
       else
         w->timer.repeat = w->interval ? w->interval : NFS_STAT_INTERVAL; /* remote, use reduced frequency */
     }
@@ -5624,4 +5629,3 @@ ev_walk (EV_P_ int types, void (*cb)(EV_P_ int type, void *w)) EV_NOEXCEPT
 #if EV_MULTIPLICITY
   #include "ev_wrap.h"
 #endif
-
